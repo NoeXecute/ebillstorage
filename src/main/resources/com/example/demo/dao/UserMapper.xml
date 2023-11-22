@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.UserMapper">
+	<!-- すべでのユーザーを検索する -->
+  	<select id="getUsers" resultType="com.example.demo.entity.User">
+    	SELECT
+        	userid,
+            user_status,
+            username,
+            rolesno,
+			createymd,
+			createuserid,
+			updateymd,
+			updateuserid,
+			remark
+        FROM
+            ebillstorage.user
+        WHERE user_status = TRUE
+		ORDER BY createymd
+  	</select>
+
+	  <select id="isUserExists" parameterType="com.example.demo.entity.User" resultType="int">
+    	SELECT
+        	count(userid)
+		FROM
+            ebillstorage.user
+        WHERE userid = #{userid}
+  	</select>
+
+	<!-- 新規ユーザーを増加する -->
+	<insert id="insertUser" parameterType="com.example.demo.entity.User">
+	    INSERT INTO ebillstorage.user (userid, user_status, username, password, rolesno, createymd, createuserid)
+	    VALUES (#{userid}, TRUE, #{username},#{password},#{rolesno},now(),#{createuserid})
+  	</insert>
+	
+	<!-- 指定されるユーザーの情報を編集する -->
+	<update id="updateUser" parameterType="com.example.demo.entity.User">
+	    UPDATE ebillstorage.user SET
+    	<if test="username != null and username != ''">
+            username = #{username},
+        </if>
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+		<if test="rolesno != null and rolesno != ''">
+            rolesno = #{rolesno},
+        </if>
+            updateuserid = #{updateuserid},
+			updateymd = now()
+	    WHERE userid = #{userid}
+	</update>
+	
+	<!-- 指定されるユーザーを削除する -->
+	<update id="deleteUser" parameterType="com.example.demo.entity.User">
+	    UPDATE ebillstorage.user
+	    SET user_status = FALSE
+	    WHERE userid = #{userid}
+	</update>
+</mapper>

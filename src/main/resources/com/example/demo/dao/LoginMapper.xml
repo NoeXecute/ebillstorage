@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.LoginMapper">
+    <select id="getAuthenticateResult" parameterType="com.example.demo.dto.LoginRequest" resultType="com.example.demo.entity.User">
+    	SELECT
+        	userid,
+            user_status,
+            username,
+            rolesno
+        FROM
+            ebillstorage.user
+        WHERE userid=#{userid} and password = #{password} and user_status = true
+  	</select>
+</mapper>

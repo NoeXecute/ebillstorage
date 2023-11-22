@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.BillMapper">
+	<!-- 帳票を検索する -->
+  	<select id="getBills" parameterType="com.example.demo.dto.GetBillsRequest" resultType="com.example.demo.entity.BillInfo">
+		WITH ranked_data AS (
+		  SELECT
+		    bl.historyno,
+		    bl.billno,
+		    c.customer,
+		    bt.bill_type,
+		    bl.bill_typeno,
+		    bl.customerno,
+		    bl.transactionymd,
+		    bl.transaction_amount,
+		    ROW_NUMBER() OVER (PARTITION BY bl.billno ORDER BY bl.transactionymd DESC) AS row_num
+		  FROM
+		    ebillstorage.bill_log bl
+		    LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
+		    LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
+		    LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
+		  WHERE r.review_status = 3 OR r.review_status = 4
+		)
+		SELECT
+		  historyno,
+		  billno,
+		  customer,
+		  bill_type,
+		  bill_typeno,
+		  customerno,
+		  transactionymd,
+		  transaction_amount,
+		  COUNT(*) OVER() AS totalBill
+		FROM ranked_data
+		WHERE (row_num = 1 OR row_num IS NULL)
+			<if test="prop != null and prop != ''">
+				<if test="prop == 'transactionAmount'">
+					ORDER BY transaction_amount
+				</if>
+				<if test="prop != 'transactionAmount'">
+					ORDER BY ${prop}
+				</if>
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+            <if test="prop == null or prop == ''">
+                ORDER BY billno
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+		LIMIT #{pagesize} OFFSET #{pageResult};
+  	</select>
+	<!-- 検索条件に基づいて帳票を検索する -->
+  	<select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
+				WITH ranked_data AS (
+		  SELECT
+		    bl.historyno,
+		    bl.billno,
+		    c.customer,
+		    bt.bill_type,
+		    bl.bill_typeno,
+		    bl.customerno,
+		    bl.transactionymd,
+		    bl.transaction_amount,
+		    bl.updateuserid,
+		    ROW_NUMBER() OVER (PARTITION BY bl.billno ORDER BY bl.transactionymd DESC) AS row_num
+		  FROM
+		    ebillstorage.bill_log bl
+		    LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
+		    LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
+		    LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
+		  WHERE r.review_status = 3 OR r.review_status = 4
+		)
+		SELECT
+		  historyno,
+		  billno,
+		  customer,
+		  bill_type,
+		  bill_typeno,
+		  customerno,
+		  transactionymd,
+		  transaction_amount,
+		  updateuserid,
+		  COUNT(*) OVER() AS totalBill
+		FROM ranked_data
+		WHERE (row_num = 1 OR row_num IS NULL)
+			<!-- <if test="condition.transactionDateFrom != null and condition.transactionDateFrom != '' and (condition.transactionDateTo == null or condition.transactionDateTo == '')">
+                AND transactionymd BETWEEN TIMESTAMP #{condition.transactionDateFrom} AND TIMESTAMP '9999-12-31 23:59:59'
+            </if>
+			<if test="condition.transactionDateTo != null and condition.transactionDateTo != '' and (condition.transactionDateFrom == null or condition.transactionDateFrom == '')">
+				AND transactionymd BETWEEN TIMESTAMP '0001-01-01' AND TIMESTAMP #{condition.transactionDateTo}
+			</if> -->
+            <if test="condition.transactionDateFrom != null and condition.transactionDateFrom != '' and condition.transactionDateTo != null and condition.transactionDateTo != ''">
+                AND transactionymd BETWEEN CAST(#{condition.transactionDateFrom} AS timestamp)  AND CAST(#{condition.transactionDateTo} AS timestamp)
+            </if>
+            <if test="condition.transactionAmountFrom != null and condition.transactionAmountFrom != '' and condition.transactionAmountTo != null and condition.transactionAmountTo != ''">
+                AND transaction_amount BETWEEN #{condition.transactionAmountFrom} AND #{condition.transactionAmountTo} 
+            </if>
+            <if test="condition.transactionAmountFrom != null and condition.transactionAmountFrom != '' and (condition.transactionAmountTo == null or condition.transactionAmountTo == '')">
+                AND transaction_amount >= #{condition.transactionAmountFrom}
+            </if>
+            <if test="(condition.transactionAmountFrom == null or condition.transactionAmountFrom == '') and condition.transactionAmountTo != null and condition.transactionAmountTo != ''">
+                AND transaction_amount BETWEEN 0 AND #{condition.transactionAmountTo}
+            </if>
+            <if test="condition.customerno != null and condition.customerno != ''">
+                AND customerno = #{condition.customerno}
+            </if>
+            <if test="condition.billTypeno != null and condition.billTypeno != ''">
+                AND bill_typeno = #{condition.billTypeno}
+            </if>
+            <if test="condition.updateuserid != null and condition.updateuserid != ''">
+                AND updateuserid = #{condition.updateuserid}
+            </if>
+			<if test="prop != null and prop != ''">
+				<if test="prop == 'transactionAmount'">
+					ORDER BY transaction_amount
+				</if>
+				<if test="prop != 'transactionAmount'">
+					ORDER BY ${prop}
+				</if>
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+            <if test="prop == null or prop == ''">
+                ORDER BY billno
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+		LIMIT #{pagesize} OFFSET #{pageResult};
+	</select>
+
+	<select id="getEditWaitBill" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
+		WITH ranked_data AS (
+		SELECT
+			bl.historyno,
+			bl.billno,
+			c.customer,
+			bt.bill_type,
+			bl.bill_typeno,
+			bl.customerno,
+			bl.transactionymd,
+			bl.transaction_amount,
+			bl.updateuserid,
+			ROW_NUMBER() OVER (PARTITION BY bl.billno ORDER BY bl.transactionymd DESC) AS row_num
+		FROM
+			ebillstorage.bill_log bl
+			LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
+			LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
+			LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
+		WHERE r.review_status = 5 OR r.review_status = 6
+		)
+		SELECT
+			historyno,
+			billno,
+			customer,
+			bill_type,
+			bill_typeno,
+			customerno,
+			transactionymd,
+			transaction_amount,
+			updateuserid,
+			COUNT(*) OVER() AS totalBill
+		FROM ranked_data
+		WHERE (row_num = 1 OR row_num IS NULL)
+		ORDER BY billno
+		LIMIT #{pagesize} OFFSET #{pageResult};
+	</select>
+	<!-- 承認を待つ取引帳票リストを検索する -->
+  	<select id="getOnSubmit" parameterType="com.example.demo.dto.GetBillsRequest" resultType="com.example.demo.entity.BillInfo">
+		WITH ranked_data AS (  
+		SELECT
+		    bi.inputno,
+		    bi.billno,
+		    c.customer, 
+		    bt.bill_type, 
+		    bi.bill_typeno,
+		    bi.customerno,
+		    bi.transactionymd,
+		    bi.transaction_amount
+		  FROM
+		    ebillstorage.bill_input bi
+		    LEFT JOIN ebillstorage.review r ON bi.billno = r.billno
+		    LEFT JOIN ebillstorage.customer c ON bi.customerno = c.customerno 
+		    LEFT JOIN ebillstorage.bill_type bt ON bi.bill_typeno = bt.bill_typeno 
+		  WHERE (r.review_status = 1 OR r.review_status = 2) AND r.edit_permissions = false
+		  )
+		SELECT
+			inputno,
+			billno,
+			customer,
+			bill_type,
+			bill_typeno,
+			customerno,
+			transactionymd,
+			transaction_amount,
+			COUNT(*) OVER() AS totalBill
+			FROM ranked_data
+			<if test="prop != null and prop != ''">
+				<if test="prop == 'transactionAmount'">
+					ORDER BY transaction_amount
+				</if>
+				<if test="prop != 'transactionAmount'">
+					ORDER BY ${prop}
+				</if>
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+            <if test="prop == null or prop == ''">
+                ORDER BY billno
+                <if test="order == 'ascending' or order == null or order == ''">
+                    asc
+                </if>
+                <if test="order == 'descending'">
+                    desc
+                </if>
+            </if>
+		LIMIT #{pagesize} OFFSET #{pageResult};
+	</select>
+
+	<select id="getBillStatus" parameterType="String" resultType="com.example.demo.entity.Review">
+	SELECT
+		billno,  
+		review_status,
+		edit_permissions                          
+	FROM
+		ebillstorage.review 
+        where billno = #{billno}
+  	</select>
+
+	  <select id="getNewBillDetails" parameterType="String" resultType="com.example.demo.entity.BillDetails">
+	    SELECT
+			bi.inputno,
+			bi.billno,
+			bi.transactionymd,
+			bi.transaction_amount,
+			c.customerno,
+			c.customer,
+			bi.bill_typeno,
+			bt.bill_type,
+			bi.updateymd,
+			bi.updateuserid,
+			u.username as updateusername,
+			bi.remark,
+			bf.bill_filelink as imageurl,
+			r.review_status,
+			r.edit_permissions
+        FROM ebillstorage.bill_input bi
+        LEFT JOIN ebillstorage.customer c ON bi.customerno = c.customerno
+        LEFT JOIN ebillstorage.bill_type bt ON bi.bill_typeno = bt.bill_typeno
+        LEFT JOIN ebillstorage.user u ON bi.updateuserid = u.userid
+        LEFT JOIN ebillstorage.bill_file bf ON bi.billno = bf.billno
+        LEFT JOIN ebillstorage.review r ON bi.billno = r.billno
+        where bi.billno = #{billno}
+  	</select>
+
+	<!-- 取引の詳細情報を検査する -->
+	<select id="getBillDetails" parameterType="String" resultType="com.example.demo.entity.BillDetails">
+		select * from (
+				SELECT 
+					bi.billno,
+					bt.bill_type,
+					bt.bill_typeno,
+					c.customer,
+					c.customerno,
+					bi.remark,
+					bi.transaction_amount,
+					bi.transactionymd,
+					u.username as updateusername,
+					bf.bill_filelink as imageUrl,
+					bi.updateymd,
+					bi.updateuserid,
+					r.review_status,
+					r.edit_permissions 
+				FROM ebillstorage.bill_input bi 
+				left join ebillstorage.bill_type bt on bi.bill_typeno = bt.bill_typeno 
+				left join ebillstorage.customer c on bi.customerno = c.customerno 
+				left join ebillstorage.review r on bi.billno=r.billno 
+				left join ebillstorage.user u on bi.updateuserid=u.userid 
+				left join ebillstorage.bill_file bf on bi.billno=bf.billno
+				where bi.billno=#{billno}
+			UNION
+				SELECT 
+					bl.billno,
+					bt.bill_type,
+					bt.bill_typeno,
+					c.customer,
+					c.customerno,
+					bl.remark,
+					bl.transaction_amount,
+					bl.transactionymd,
+					u.username as updateusername,
+					bf.bill_filelink as imageUrl,
+					bl.updateymd,
+					bl.updateuserid,
+					r.review_status,
+					r.edit_permissions 
+			FROM ebillstorage.bill_log bl 
+			left join ebillstorage.bill_type bt on bl.bill_typeno = bt.bill_typeno left join ebillstorage.customer c on bl.customerno = c.customerno 
+			left join ebillstorage.review r on bl.billno=r.billno left join ebillstorage.user u on bl.updateuserid=u.userid left join ebillstorage.bill_file bf on bl.billno=bf.billno
+			where bl.billno=#{billno}
+			) order by updateymd desc 
+  	</select>
+
+	<!-- 取引の詳細情報を検査する -->
+	<select id="getUpdateUserids"  resultType="com.example.demo.dto.UpdateUsersResponse">
+	    SELECT
+        bl.updateuserid,
+        u.username AS updateUsername
+        FROM ebillstorage.bill_log bl
+        LEFT JOIN ebillstorage.user u on bl.updateuserid=u.userid
+        GROUP BY bl.updateuserid,u.username
+        ORDER BY bl.updateuserid 
+  	</select>
+
+	<!-- 帳票を承認する -->
+	<insert id="agreeBill" parameterType="String">
+		BEGIN; <!-- 开始事务 -->
+
+		<!-- 在事务中执行A表的INSERT语句 -->
+		INSERT INTO ebillstorage.bill_log (billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, remark)
+	    SELECT billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, remark
+		FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
+
+		update ebillstorage.review SET review_status = 3 WHERE review.billno=#{billno};
+		<!-- 在事务中执行B表的DELETE语句 -->
+		DELETE FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
+
+		<!-- 如果到达这一步没有出现错误，提交事务 -->
+		COMMIT;
+
+		<!-- 如果在执行过程中出现错误，回滚事务 -->
+		ROLLBACK;
+  	</insert>
+  	
+  	<!-- 帳票を承認しない -->
+	<update id="disagreeBill" parameterType="String">
+		BEGIN; <!-- 开始事务 -->
+		DELETE FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
+		<!-- 在事务中执行A表的update语句 -->
+		update ebillstorage.review SET review_status = 4 WHERE review.billno=#{billno};
+		<!-- 如果到达这一步没有出现错误，提交事务 -->
+		<!-- CASE
+			WHEN (SELECT review_status FROM ebillstorage.review WHERE billno=#{billno}) = 1 THEN
+				 如果 review_status = 1，则直接删除 ebillstorage.bill_input 表中 billno 对应的数据 
+				DELETE FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
+			
+			WHEN (SELECT review_status FROM ebillstorage.review WHERE billno=#{billno}) = 2 THEN
+				 如果 review_status = 2，则将 review_status 更新为 4，且删除 ebillstorage.bill_input 表中 billno 对应的数据 
+				UPDATE ebillstorage.review SET review_status = 4 WHERE review.billno=#{billno};
+				DELETE FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
+			
+			ELSE
+				其他情况的处理，你可以根据需要添加
+				RAISE EXCEPTION 'Invalid review_status value';
+    	END CASE; -->
+
+		COMMIT;
+
+		BEGIN; 
+    <!-- 开始事务 -->
+    
+   
+
+    <!-- 如果到达这一步没有出现错误，提交事务 -->
+    COMMIT;
+
+  	</update>
+  	
+  	<!-- 編集の権限をあげる -->
+	<update id="giveEditPermissons" parameterType="String">
+	    update ebillstorage.review SET review_status = 6,edit_permissions=true WHERE review.billno=#{billno};
+  	</update>
+
+	  <update id="applyEditPermissons" parameterType="String">
+		UPDATE ebillstorage.review 
+		SET
+			review_status = 5 
+        where billno = #{billno}
+  	</update>
+
+  	<!-- 帳票を新規する -->
+	<insert id="createBill" parameterType="com.example.demo.dto.CreateBillsRequest">
+	    BEGIN;
+		 <!-- 开始事务 -->
+	    
+	    INSERT INTO ebillstorage.bill_input (
+			billno,
+			transactionymd,
+			transaction_amount,
+			customerno,
+			bill_typeno,
+			updateymd,
+			updateuserid,
+			remark
+			)
+	    VALUES (
+			#{billno},
+			#{transactionymd},
+			#{transactionAmount},
+			#{customerno},
+			#{billTypeno},
+			NOW(),
+			#{updateuserid},
+			#{remark}
+			)
+	    
+	    INSERT INTO ebillstorage.review (billno, review_status, edit_permissions)
+	    VALUES (#{billno},1,false)
+	    
+	    INSERT INTO ebillstorage.bill_file (billno, bill_filelink)
+	    VALUES (#{billno},#{imageUrl})
+	    <!-- 如果到达这一步没有出现错误，提交事务 -->
+		COMMIT;
+
+		<!-- 如果在执行过程中出现错误，回滚事务 -->
+		ROLLBACK;
+  	</insert>
+
+	<insert id="insertBillInput" parameterType="com.example.demo.dto.CreateBillsRequest">
+	    INSERT INTO ebillstorage.bill_input (
+			billno,
+			transactionymd,
+			transaction_amount,
+			customerno,
+			bill_typeno,
+			updateymd,
+			updateuserid,
+			remark
+			)
+	    VALUES (
+			#{billno},
+			#{transactionymd},
+			#{transactionAmount},
+			#{customerno},
+			#{billTypeno},
+			NOW(),
+			#{updateuserid},
+			#{remark}
+			)
+  	</insert>
+
+	  <insert id="insertReview" parameterType="com.example.demo.dto.CreateBillsRequest">
+		INSERT INTO ebillstorage.review (billno, review_status, edit_permissions)
+	    VALUES (#{billno},1,false)
+  	</insert>
+
+	  <insert id="insertBillFile" parameterType="com.example.demo.dto.CreateBillsRequest">
+		INSERT INTO ebillstorage.bill_file (billno, bill_filelink)
+	    VALUES (#{billno},#{imageUrl})
+  	</insert>
+	
+	<!-- 帳票情報を改修する -->
+	<insert id="editBill" parameterType="com.example.demo.entity.BillInfo">
+	    BEGIN; <!-- 开始事务 -->
+	    INSERT INTO ebillstorage.bill_input (billno,transactionymd,transaction_amount,customerno,bill_typeno,updateymd,updateuserid,remark)
+	    VALUES (#{billno},#{transactionymd},#{transactionAmount},#{customerno},#{billTypeno},NOW(),#{updateuserid},#{remark});
+	    
+
+		update ebillstorage.review SET review_status = 2,edit_permissions=false WHERE review.billno=#{billno};
+	    <!-- INSERT INTO ebillstorage.review (billno, review_status, edit_permissions)
+	    VALUES (#{billno},2,false) -->
+	    <!-- 如果到达这一步没有出现错误，提交事务 -->
+		COMMIT;
+		ROLLBACK;
+	</insert>
+</mapper>

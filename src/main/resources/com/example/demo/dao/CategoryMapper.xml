@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.CategoryMapper">
+	<!-- すべでのカスタマーを検索する -->
+  	<select id="getCustomers" resultType="com.example.demo.entity.Customer">
+    	SELECT
+        	c.customerno,
+            ct.customer_type,
+            c.customer_typeno,
+            c.customer, 
+			c.createymd,                                 
+			c.createuserid,                             
+			c.updateymd,                                
+			c.updateuserid,                             
+			c.remark,                                   
+			c.address,                                  
+			c.phone_number,                             
+			c.legal_entity_number                    
+        FROM
+            ebillstorage.customer c
+        LEFT JOIN ebillstorage.customertypes ct ON c.customer_typeno = ct.customer_typeno
+        WHERE customer_status = TRUE
+  	</select>
+  	<!-- カスタマー種類を検索する -->
+  	<select id="getCustomerTypeByName" parameterType="String" resultType="com.example.demo.entity.CustomerType">
+    	SELECT
+    		customer_typeno,
+        	customer_type
+        FROM
+            ebillstorage.customertypes
+        WHERE customer_type = #{customerType}
+  	</select>
+	<!-- すべでの帳票種類を検索する -->
+  	<select id="getBillTypes" resultType="com.example.demo.entity.BillType">
+    	SELECT
+        	bill_typeno,
+            bill_type,
+			createymd,                               
+			createuserid,                              
+			updateymd,                              
+			updateuserid                           
+        FROM
+            ebillstorage.bill_type
+        WHERE bill_type_status = TRUE
+  	</select>
+
+	<select id="isBillTypeExists" parameterType="String" resultType="int">
+    	SELECT
+    		count(bill_typeno)
+        FROM
+            ebillstorage.bill_type
+       WHERE bill_type = #{billType}
+  	</select>
+  	
+	<!-- 保存パスを設定する -->
+	<insert id="setPath" parameterType="String">
+	    INSERT INTO ebillstorage.storage_path (path, recordymd)
+	    VALUES (#{pathAddress},NOW())
+  	</insert>
+	
+	<!-- 帳票種類を増加する -->
+	<insert id="insertBillType" parameterType="com.example.demo.entity.BillType">
+		INSERT INTO ebillstorage.bill_type 
+			(bill_type_status, bill_type,createuserid,createymd)
+		VALUES 
+			(true, #{billType}, #{createuserid},now())
+  	</insert>
+
+	<!-- 指定されるユーザーの情報を編集する -->
+	<update id="editBillType" parameterType="com.example.demo.entity.BillType">
+	    UPDATE ebillstorage.bill_type SET
+    	<if test="billType != null and billType != ''">
+            bill_type = #{billType},
+        </if>
+        <if test="updateuserid != null and updateuserid != ''">
+            updateuserid = #{updateuserid},
+        </if>
+			updateymd=now()
+	    WHERE bill_typeno = #{billTypeno}
+	</update>
+  	
+  	<!-- カスタマー種類を増加する -->
+	<insert id="insertCustomerType" parameterType="String">
+	    INSERT INTO ebillstorage.customertypes (customer_type)
+	    VALUES (#{customerType})
+  	</insert>
+	
+	<!-- 指定される帳票種類を削除する -->
+	<update id="deleteBillType" parameterType="int">
+	    UPDATE ebillstorage.bill_type SET
+            bill_type_status = FALSE
+	    WHERE bill_typeno = #{billTypeno}
+	</update>
+	
+	<!-- 指定されるカスタマーを削除する -->
+	<update id="deleteCustomer" parameterType="com.example.demo.entity.Customer">
+	    UPDATE ebillstorage.customer SET
+	    	customer_status = FALSE,
+			updateuserid = #{updateuserid},
+			updateymd = now()
+	    WHERE customerno = #{customerno}
+	</update>
+	
+	<!-- カスタマーを新規する -->
+	<insert id="insertCustomer" parameterType="com.example.demo.entity.Customer">
+		INSERT INTO ebillstorage.customer 
+		(
+			customer_status,
+			customer_typeno,
+			customer,
+			createuserid,
+			createymd,
+			address,
+			phone_number,
+			legal_entity_number
+		) 
+		VALUES 
+		(
+			true,
+			(SELECT customer_typeno FROM ebillstorage.customertypes WHERE customer_type = #{customerType}),
+			#{customer},
+			#{createuserid},
+			now(),
+			#{address},
+			#{phoneNumber},
+			#{legalEntityNumber}
+		)
+	</insert>
+
+	<select id="isCustomerExists" parameterType="com.example.demo.entity.Customer" resultType="int">
+    	SELECT
+    		count(customerno)
+        FROM
+            ebillstorage.customer
+       WHERE customer = #{customer}
+  	</select>
+
+		<!-- 指定されるユーザーの情報を編集する -->
+		<update id="editCustomer" parameterType="com.example.demo.entity.Customer">
+			UPDATE ebillstorage.customer 
+			SET
+			<if test="customer != null and customer != ''">
+				customer = #{customer},
+			</if>
+			<if test="customerType != null and customerType != ''">
+				customer_typeno = (SELECT customer_typeno FROM ebillstorage.customertypes WHERE customer_type = #{customerType}),
+			</if>
+			<if test="address != null and address != ''">
+				address = #{address},
+			</if>
+			<if test="phoneNumber != null and phoneNumber != ''">
+				phone_number = #{phoneNumber},
+			</if>
+			<if test="legalEntityNumber != null and legalEntityNumber != ''">
+				legal_entity_number = #{legalEntityNumber},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark = #{remark},
+			</if>
+				updateuserid = #{updateuserid},
+				updateymd=now()
+			WHERE customerno = #{customerno}
+		</update>
+
+	
+	<!-- 指定されるカスタマーを削除する -->
+  	<select id="getCustomerTypes" resultType="com.example.demo.entity.CustomerType">
+    	SELECT
+        	customer_typeno,
+            customer_type
+        FROM
+            ebillstorage.customertypes
+  	</select>
+</mapper>
