@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,8 @@ import com.example.demo.dto.UpdateUsersResponse;
 import com.example.demo.entity.BillDetails;
 import com.example.demo.entity.BillInfo;
 import com.example.demo.entity.Result;
+import com.example.demo.entity.Searchmanage;
+import com.example.demo.entity.Searchmatchmanage;
 import com.example.demo.entity.User;
 import com.example.demo.service.BillService;
 
@@ -85,7 +88,7 @@ public class BillController {
 
     @RequestMapping(value = "/getBillDetails/{billno}", method = RequestMethod.GET)
     public Result GetBillDetails(@RequestBody @PathVariable String billno) {
-        System.out.println("billno"+billno);
+        System.out.println("billno" + billno);
         List<BillDetails> billDetails = billService.getBillDetails(billno);
         return Result.ok(billDetails);
     }
@@ -109,7 +112,8 @@ public class BillController {
     }
 
     @RequestMapping(value = "/updateFile", method = RequestMethod.POST)
-    public Result UpdateFile(@RequestPart(value = "file") @Valid MultipartFile multipartFile)
+    public Result UpdateFile(@RequestPart(value = "file") @Valid MultipartFile multipartFile,
+            @RequestParam(value = "userid") int userId)
             throws SocketException, IOException {
         if (multipartFile.isEmpty()) {
             return Result.error("Error: File is empty");
@@ -132,14 +136,14 @@ public class BillController {
                 uploadPath.mkdirs();
             }
 
-            SimpleDateFormat dateFormatForName = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            SimpleDateFormat dateFormatForName = new SimpleDateFormat("yyyyMMddHHmmss");
             String fileExtension = fileName.substring(fileName.lastIndexOf(".")); // 获取文件扩展名
-            String newFileName = dateFormatForName.format(new Date()) + fileExtension;
+            String newFileName = dateFormatForName.format(new Date()) + "_" + userId + "_" + fileName + fileExtension;
             File dest = new File(uploadPath + File.separator + newFileName);
             multipartFile.transferTo(dest);
 
             // http://192.168.11.9:8091/202311/20231117_140017.png
-            String uploadedFilePath = "http://192.168.11.9:8091/" + dir +"/"+ newFileName;
+            String uploadedFilePath = "http://192.168.11.9:8091/" + dir + "/" + newFileName;
             System.out.println("文件上传成功。路径：" + uploadedFilePath);
             // 可以返回成功的响应
             Map<String, String> responseMap = new HashMap<>();
@@ -177,7 +181,6 @@ public class BillController {
         return Result.ok(null);
     }
 
-    // ###
     @RequestMapping(value = "/downloadBill", method = RequestMethod.POST)
     public Result DownloadBill(@RequestBody @Valid List<String> billnos) {
         List<BillInfo> billInfos = billService.downloadBill(billnos);
@@ -188,5 +191,17 @@ public class BillController {
     public Result getUpdateUserids() {
         List<UpdateUsersResponse> updateUserids = billService.getUpdateUserids();
         return Result.ok(updateUserids);
+    }
+
+    @RequestMapping(value = "/getSearchmanage/{userid}", method = RequestMethod.GET)
+    public Result getSearchmanage(@RequestBody @PathVariable int userid) {
+        List<Searchmanage> searchmanageList = billService.getSearchmanage();
+        Searchmatchmanage searchmatchmanage = billService.getSearchmatchmanageByUser(userid);
+        if (searchmatchmanage == null) {
+            return Result.error("Error: 現在のユーザーが見つかりませんでした");
+        }
+        searchmanageList = billService.searchmanageDeal(searchmanageList, searchmatchmanage);
+
+        return Result.ok(searchmanageList);
     }
 }

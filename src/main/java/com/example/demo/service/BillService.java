@@ -3,6 +3,8 @@ package com.example.demo.service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Iterator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,10 @@ import com.example.demo.dto.GetBillsRequest;
 import com.example.demo.dto.UpdateUsersResponse;
 import com.example.demo.entity.BillDetails;
 import com.example.demo.entity.BillInfo;
+import com.example.demo.entity.Result;
 import com.example.demo.entity.Review;
+import com.example.demo.entity.Searchmanage;
+import com.example.demo.entity.Searchmatchmanage;
 import com.example.demo.entity.User;
 
 @Service
@@ -76,8 +81,8 @@ public class BillService {
 		// TODO 自動生成されたメソッド・スタブ
 		// Review review = billMapper.getBillStatus(billno);
 		// if (review.getReviewStatus() == 1) {
-		// 	List<BillDetails> billDetails = billMapper.getNewBillDetails(billno);
-		// 	return billDetails;
+		// List<BillDetails> billDetails = billMapper.getNewBillDetails(billno);
+		// return billDetails;
 		// }
 
 		List<BillDetails> billDetails = billMapper.getBillDetails(billno);
@@ -100,7 +105,7 @@ public class BillService {
 		Date currentTime = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		String timeAsString = dateFormat.format(currentTime);
-		String billnoString = timeAsString +"BY"+createBillsRequest.getUpdateuserid()+"-AA";
+		String billnoString = timeAsString + "BY" + createBillsRequest.getUpdateuserid() + "-AA";
 		createBillsRequest.setBillno(billnoString);
 
 		// SimpleDateFormat dateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
@@ -158,6 +163,57 @@ public class BillService {
 		// TODO 自動生成されたメソッド・スタブ
 		List<UpdateUsersResponse> updateUserids = billMapper.getUpdateUserids();
 		return updateUserids;
+	}
+
+	public List<Searchmanage> getSearchmanage() {
+		List<Searchmanage> searchmanageList = billMapper.getSearchmanage();
+		return searchmanageList;
+	}
+
+	public Searchmatchmanage getSearchmatchmanageByUser(int userid) {
+		Searchmatchmanage searchmatchmanage = billMapper.getSearchmatchmanageByUser(userid);
+		return searchmatchmanage;
+	}
+
+	public List<Searchmanage> searchmanageDeal(List<Searchmanage> searchmanageList,
+			Searchmatchmanage searchmatchmanage) {
+		Iterator<Searchmanage> iterator = searchmanageList.iterator();
+		while (iterator.hasNext()) {
+			Searchmanage item = iterator.next();
+
+			// 根据Searchmatchmanage对象的属性值判断是否要移除该项
+			if (!matchSearchStatus(item, searchmatchmanage)) {
+				iterator.remove();
+			}
+		}
+
+		return searchmanageList;
+	}
+
+
+	private static boolean matchSearchStatus(Searchmanage item, Searchmatchmanage searchmatchmanage) {
+		String condition = (String) item.getCondition();
+		if (!item.isSearchStatus()) {
+			return false;
+		}
+
+		// 根据Searchmatchmanage对象的属性值判断是否要移除该项
+		switch (condition) {
+			case "pending_approval_new":
+				return searchmatchmanage.isPendingApprovalNew();
+			case "pending_approval_modification":
+				return searchmatchmanage.isPendingApprovalModification();
+			case "approved":
+				return searchmatchmanage.isApproved();
+			case "denied":
+				return searchmatchmanage.isDenied();
+			case "editing_permission_requested":
+				return searchmatchmanage.isEditingPermissionRequested();
+			case "editing_pending":
+				return searchmatchmanage.isEditingPending();
+			default:
+				return false;
+		}
 	}
 
 }

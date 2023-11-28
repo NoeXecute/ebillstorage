@@ -11,6 +11,8 @@ import com.example.demo.dto.UpdateUsersResponse;
 import com.example.demo.entity.BillDetails;
 import com.example.demo.entity.BillInfo;
 import com.example.demo.entity.Review;
+import com.example.demo.entity.Searchmanage;
+import com.example.demo.entity.Searchmatchmanage;
 import com.example.demo.entity.User;
 
 @Mapper
@@ -53,4 +55,10 @@ public interface BillMapper {
 	public void applyEditPermissons(String billno);
 
 	public List<UpdateUsersResponse> getUpdateUserids();
+
+	public List<Searchmanage> getSearchmanage();
+
+	public Searchmatchmanage getSearchmatchmanageByUser(int userid);
+	
+
 }

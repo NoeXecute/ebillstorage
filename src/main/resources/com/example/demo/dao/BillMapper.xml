@@ -485,4 +485,35 @@
 		COMMIT;
 		ROLLBACK;
 	</insert>
+
+	<select id="getSearchmanage"  resultType="com.example.demo.entity.Searchmanage">
+		SELECT
+			s.searchno,
+			s.condition,
+			s.condition_japanese,
+			s.review_status,
+			s.search_status
+		FROM
+			ebillstorage.searchmanage s
+		ORDER BY
+			s.searchno
+  	</select>
+
+	 <select id="getSearchmatchmanageByUser"  resultType="com.example.demo.entity.Searchmatchmanage" parameterType="int">
+		SELECT
+			s.userid,                                   
+			s.pending_approval_new,
+			s.pending_approval_modification,
+			s.approved,
+			s.denied,
+			s.editing_permission_requested,
+			s.editing_pending
+		FROM
+			ebillstorage.searchmatchmanage s
+		WHERE
+			s.userid = #{userid} 
+		ORDER BY
+			s.userid
+  	</select>
+	  
 </mapper>
