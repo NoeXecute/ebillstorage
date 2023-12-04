@@ -1,10 +1,14 @@
 package com.example.demo.service;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -108,10 +112,6 @@ public class BillService {
 		String billnoString = timeAsString + "BY" + createBillsRequest.getUpdateuserid() + "-AA";
 		createBillsRequest.setBillno(billnoString);
 
-		// SimpleDateFormat dateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
-		// String timeAsString1 =
-		// dateFormat1.format(createBillsRequest.getTransactionymd());
-		// createBillsRequest.setTransactionymd1(timeAsString1);
 
 		try {
 			// 插入数据到 bill_input 表
@@ -123,20 +123,15 @@ public class BillService {
 			// 插入数据到 bill_file 表
 			billMapper.insertBillFile(createBillsRequest);
 
+			billMapper.batchUpdateFileTemplog(createBillsRequest);
 			// 如果没有抛出异常，事务会在方法结束时自动提交
 		} catch (Exception e) {
 			// 如果发生异常，事务会回滚
 			throw new RuntimeException("创建账单失败", e);
 		}
 
-		// billMapper.createBill(createBillsRequest);
 	}
 
-	// public String updateFile(MultipartFile multipartFile) {
-	// // TODO 自動生成されたメソッド・スタブ
-	// String imageUrl = billMapper.updateFile();
-	// return imageUrl;
-	// }
 
 	public void editBill(BillInfo editBillInfo) {
 		// TODO 自動生成されたメソッド・スタブ
@@ -165,6 +160,40 @@ public class BillService {
 		return updateUserids;
 	}
 
+	public void deleteTempFile(Map<String, Object> imageUrlMap) {
+		String imageUrl = (String) imageUrlMap.get("imageUrl");
+		String localFilePath = convertUrlToPath(imageUrl);
+		// System.out.println(localFilePath);
+
+		// 构建文件对象
+		File fileToDelete = new File(localFilePath);
+
+		// 检查文件是否存在，然后进行删除
+		if (fileToDelete.exists()) {
+			if (fileToDelete.delete()) {
+				billMapper.deleteTempFile(imageUrl);
+			} else {
+				throw new RuntimeException("Failed to delete file");
+			}
+		} else {
+			throw new RuntimeException("File not found");
+		}
+	}
+
+	public static String convertUrlToPath(String imageUrl) {
+		try {
+			URL url = new URL(imageUrl);
+			Path path = Paths.get("D:/ftp/nixiao-test", url.getPath());
+
+			// 获取规范化的路径字符串
+			return path.normalize().toString();
+		} catch (Exception e) {
+			// 处理 URL 格式错误的异常
+			e.printStackTrace();
+			throw new RuntimeException("Handling URL Format Errors Exception.", e);
+		}
+	}
+
 	public List<Searchmanage> getSearchmanage() {
 		List<Searchmanage> searchmanageList = billMapper.getSearchmanage();
 		return searchmanageList;
@@ -190,7 +219,6 @@ public class BillService {
 		return searchmanageList;
 	}
 
-
 	private static boolean matchSearchStatus(Searchmanage item, Searchmatchmanage searchmatchmanage) {
 		String condition = (String) item.getCondition();
 		if (!item.isSearchStatus()) {
@@ -214,6 +242,10 @@ public class BillService {
 			default:
 				return false;
 		}
+	}
+
+	public void insertFileTemplog(String uploadedFilePath) {
+		billMapper.insertFileTemplog(uploadedFilePath);
 	}
 
 }

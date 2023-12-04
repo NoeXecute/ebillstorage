@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import lombok.Data;
 
@@ -25,7 +26,9 @@ public class CreateBillsRequest implements Serializable {
 
     private Date  transactionymd;
 
-    // private Date transactionymd1;
+    private boolean receiptIssuance;
 
     private String imageUrl;
+
+    private List<String> imageUrls;
 }

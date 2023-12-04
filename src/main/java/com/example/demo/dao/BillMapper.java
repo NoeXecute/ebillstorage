@@ -46,6 +46,8 @@ public interface BillMapper {
 
 	public void insertBillFile(CreateBillsRequest createBillsRequest);
 
+	public void batchUpdateFileTemplog(CreateBillsRequest createBillsRequest);
+
 	public void editBill(BillInfo editBillInfo);
 
 	public List<User> getUpdateUserIds();
@@ -54,11 +56,14 @@ public interface BillMapper {
 
 	public void applyEditPermissons(String billno);
 
+	public void deleteTempFile(String imageUrl);
+
 	public List<UpdateUsersResponse> getUpdateUserids();
 
 	public List<Searchmanage> getSearchmanage();
 
 	public Searchmatchmanage getSearchmatchmanageByUser(int userid);
-	
+
+	public void insertFileTemplog(String uploadedFilePath);
 
 }

@@ -32,6 +32,8 @@ public class BillInfo {
 
 	private int updateuserid;
 
+    private boolean receiptIssuance;
+
 	private String remark;
 
 	private int totalBill;

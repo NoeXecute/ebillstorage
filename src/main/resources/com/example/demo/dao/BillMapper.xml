@@ -61,7 +61,7 @@
 		LIMIT #{pagesize} OFFSET #{pageResult};
   	</select>
 	<!-- 検索条件に基づいて帳票を検索する -->
-  	<select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
+  	<!-- <select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
 				WITH ranked_data AS (
 		  SELECT
 		    bl.historyno,
@@ -94,12 +94,6 @@
 		  COUNT(*) OVER() AS totalBill
 		FROM ranked_data
 		WHERE (row_num = 1 OR row_num IS NULL)
-			<!-- <if test="condition.transactionDateFrom != null and condition.transactionDateFrom != '' and (condition.transactionDateTo == null or condition.transactionDateTo == '')">
-                AND transactionymd BETWEEN TIMESTAMP #{condition.transactionDateFrom} AND TIMESTAMP '9999-12-31 23:59:59'
-            </if>
-			<if test="condition.transactionDateTo != null and condition.transactionDateTo != '' and (condition.transactionDateFrom == null or condition.transactionDateFrom == '')">
-				AND transactionymd BETWEEN TIMESTAMP '0001-01-01' AND TIMESTAMP #{condition.transactionDateTo}
-			</if> -->
             <if test="condition.transactionDateFrom != null and condition.transactionDateFrom != '' and condition.transactionDateTo != null and condition.transactionDateTo != ''">
                 AND transactionymd BETWEEN CAST(#{condition.transactionDateFrom} AS timestamp)  AND CAST(#{condition.transactionDateTo} AS timestamp)
             </if>
@@ -145,6 +139,68 @@
                 </if>
             </if>
 		LIMIT #{pagesize} OFFSET #{pageResult};
+	</select> -->
+
+	<select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
+		SELECT
+			bl.historyno,
+			bl.billno,
+			c.customer,
+			bt.bill_type,
+			bl.bill_typeno,
+			bl.customerno,
+			bl.transactionymd,
+			bl.transaction_amount,
+			bl.updateuserid
+		FROM
+			ebillstorage.bill_log bl
+			LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
+			LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
+			LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
+		WHERE r.review_status = 3 OR r.review_status = 4
+			<if test="transactionDateFrom != null and transactionDateFrom != '' and transactionDateTo != null and transactionDateTo != ''">
+				AND bl.transactionymd BETWEEN #{transactionDateFrom} AND #{transactionDateTo}
+			</if>
+			<if test="transactionAmountFrom != null and transactionAmountFrom != '' or transactionAmountTo != null and transactionAmountTo != ''">
+				AND bl.transaction_amount BETWEEN 
+					COALESCE(CAST(#{transactionAmountFrom} AS DECIMAL), 0) 
+					AND 
+					COALESCE(CAST(#{transactionAmountTo} AS DECIMAL), CAST('999999999999' AS DECIMAL))
+			</if>
+			<if test="customerno != null and customerno != ''">
+				AND bl.customerno = #{customerno}
+			</if>
+			<if test="billTypeno != null and billTypeno != ''">
+				AND bl.bill_typeno = #{billTypeno}
+			</if>
+			<if test="updateuserid != null and updateuserid != ''">
+				AND bl.updateuserid = #{updateuserid}
+			</if>
+		ORDER BY
+			<if test="prop != null and prop != ''">
+				<if test="prop == 'transactionAmount'">
+				bl.transaction_amount
+				</if>
+				<if test="prop != 'transactionAmount'">
+				${prop}
+				</if>
+				<if test="order == 'ascending' or order == null or order == ''">
+				ASC
+				</if>
+				<if test="order == 'descending'">
+				DESC
+				</if>
+			</if>
+			<if test="prop == null or prop == ''">
+				bl.billno
+				<if test="order == 'ascending' or order == null or order == ''">
+				ASC
+				</if>
+				<if test="order == 'descending'">
+				DESC
+				</if>
+			</if>
+			LIMIT #{pagesize} OFFSET #{pageResult};
 	</select>
 
 	<select id="getEditWaitBill" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
@@ -339,8 +395,8 @@
 		BEGIN; <!-- 开始事务 -->
 
 		<!-- 在事务中执行A表的INSERT语句 -->
-		INSERT INTO ebillstorage.bill_log (billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, remark)
-	    SELECT billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, remark
+		INSERT INTO ebillstorage.bill_log (billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, receipt_issuance, remark)
+	    SELECT billno, transactionymd, transaction_amount, customerno, bill_typeno, updateymd, updateuserid, receipt_issuance, remark
 		FROM ebillstorage.bill_input WHERE bill_input.billno=#{billno};
 
 		update ebillstorage.review SET review_status = 3 WHERE review.billno=#{billno};
@@ -445,6 +501,7 @@
 			transaction_amount,
 			customerno,
 			bill_typeno,
+			receipt_issuance,
 			updateymd,
 			updateuserid,
 			remark
@@ -455,6 +512,7 @@
 			#{transactionAmount},
 			#{customerno},
 			#{billTypeno},
+			#{receiptIssuance},
 			NOW(),
 			#{updateuserid},
 			#{remark}
@@ -466,16 +524,33 @@
 	    VALUES (#{billno},1,false)
   	</insert>
 
-	  <insert id="insertBillFile" parameterType="com.example.demo.dto.CreateBillsRequest">
+	  <!-- <insert id="insertBillFile" parameterType="com.example.demo.dto.CreateBillsRequest">
 		INSERT INTO ebillstorage.bill_file (billno, bill_filelink)
 	    VALUES (#{billno},#{imageUrl})
-  	</insert>
+  	</insert> -->
+
+	  <insert id="insertBillFile" parameterType="com.example.demo.dto.CreateBillsRequest">
+		INSERT INTO ebillstorage.bill_file (billno, bill_filelink)
+	    VALUES 
+		<foreach collection="imageUrls" item="imageUrl" separator="," >
+            (#{billno}, #{imageUrl})
+        </foreach> 
+  	</insert> 
+
+	  <update id="batchUpdateFileTemplog" parameterType="com.example.demo.dto.CreateBillsRequest">
+        UPDATE ebillstorage.file_templog
+        SET editedymd = now()
+        WHERE filelink IN
+        <foreach collection="imageUrls" item="imageUrl" open="(" separator="," close=")">
+            #{imageUrl}
+        </foreach>
+    </update>
 	
 	<!-- 帳票情報を改修する -->
 	<insert id="editBill" parameterType="com.example.demo.entity.BillInfo">
 	    BEGIN; <!-- 开始事务 -->
-	    INSERT INTO ebillstorage.bill_input (billno,transactionymd,transaction_amount,customerno,bill_typeno,updateymd,updateuserid,remark)
-	    VALUES (#{billno},#{transactionymd},#{transactionAmount},#{customerno},#{billTypeno},NOW(),#{updateuserid},#{remark});
+	    INSERT INTO ebillstorage.bill_input (billno,transactionymd,transaction_amount,customerno,bill_typeno,updateymd,updateuserid,receipt_issuance,remark)
+	    VALUES (#{billno},#{transactionymd},#{transactionAmount},#{customerno},#{billTypeno},NOW(),#{updateuserid},#{receiptIssuance},#{remark});
 	    
 
 		update ebillstorage.review SET review_status = 2,edit_permissions=false WHERE review.billno=#{billno};
@@ -515,5 +590,26 @@
 		ORDER BY
 			s.userid
   	</select>
+
+	<delete id="deleteTempFile" parameterType="String">
+		DELETE 
+		FROM
+			ebillstorage.file_templog 
+		WHERE
+			filelink = #{imageUrl} 
+    </delete>
+
+	<insert id="insertFileTemplog" parameterType="String">
+		INSERT 
+		INTO ebillstorage.file_templog( 
+			filelink,                           
+			createymd
+		) 
+		VALUES ( 
+			 #{uploadedFilePath},
+			 now()
+		)
+  	</insert>
+	
 	  
 </mapper>

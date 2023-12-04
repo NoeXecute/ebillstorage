@@ -10,9 +10,11 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.HashMap;
 
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -106,7 +108,8 @@ public class BillController {
     }
 
     @RequestMapping(value = "/createBill", method = RequestMethod.POST)
-    public Result CreateBill(@RequestBody @Valid CreateBillsRequest createBillsRequest) {
+    public Result CreateBill(@RequestBody  CreateBillsRequest createBillsRequest) {
+        System.out.println("================"+createBillsRequest);
         billService.createBill(createBillsRequest);
         return Result.ok(null);
     }
@@ -122,6 +125,7 @@ public class BillController {
         try {
             // 获取文件名
             String fileName = multipartFile.getOriginalFilename();
+            System.out.println("fileName:" + fileName);
             if (fileName == null) {
                 return Result.error("Error: ファイル名が空です。アップロードできません。");
             }
@@ -137,14 +141,16 @@ public class BillController {
             }
 
             SimpleDateFormat dateFormatForName = new SimpleDateFormat("yyyyMMddHHmmss");
-            String fileExtension = fileName.substring(fileName.lastIndexOf(".")); // 获取文件扩展名
-            String newFileName = dateFormatForName.format(new Date()) + "_" + userId + "_" + fileName + fileExtension;
+            // String fileExtension = fileName.substring(fileName.lastIndexOf(".")); //
+            // 获取文件扩展名
+            String newFileName = dateFormatForName.format(new Date()) + "_" + userId + "_" + fileName;
             File dest = new File(uploadPath + File.separator + newFileName);
             multipartFile.transferTo(dest);
 
-            // http://192.168.11.9:8091/202311/20231117_140017.png
             String uploadedFilePath = "http://192.168.11.9:8091/" + dir + "/" + newFileName;
             System.out.println("文件上传成功。路径：" + uploadedFilePath);
+            billService.insertFileTemplog(uploadedFilePath);
+
             // 可以返回成功的响应
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("imageUrl", uploadedFilePath);
@@ -164,7 +170,7 @@ public class BillController {
     }
 
     @RequestMapping(value = "/getUpdateUserIds", method = RequestMethod.GET)
-    public Result EditBill() {
+    public Result GetUpdateUserIds() {
         List<User> updateUsers = billService.getUpdateUserIds();
         return Result.ok(updateUsers);
     }
@@ -188,13 +194,13 @@ public class BillController {
     }
 
     @RequestMapping(value = "/getUpdateUserids", method = RequestMethod.GET)
-    public Result getUpdateUserids() {
+    public Result GetUpdateUserids() {
         List<UpdateUsersResponse> updateUserids = billService.getUpdateUserids();
         return Result.ok(updateUserids);
     }
 
     @RequestMapping(value = "/getSearchmanage/{userid}", method = RequestMethod.GET)
-    public Result getSearchmanage(@RequestBody @PathVariable int userid) {
+    public Result GetSearchmanage(@RequestBody @PathVariable int userid) {
         List<Searchmanage> searchmanageList = billService.getSearchmanage();
         Searchmatchmanage searchmatchmanage = billService.getSearchmatchmanageByUser(userid);
         if (searchmatchmanage == null) {
@@ -204,4 +210,13 @@ public class BillController {
 
         return Result.ok(searchmanageList);
     }
+
+    @RequestMapping(value = "/deleteTempFile", method = RequestMethod.POST)
+    public Result DeleteTempFile(@RequestBody Map<String, Object> imageUrlMap) {
+        billService.deleteTempFile(imageUrlMap);
+        return Result.ok(null);
+    }
+
+
+
 }
