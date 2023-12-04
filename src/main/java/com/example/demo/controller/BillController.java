@@ -199,6 +199,7 @@ public class BillController {
         return Result.ok(updateUserids);
     }
 
+     //test
     @RequestMapping(value = "/getSearchmanage/{userid}", method = RequestMethod.GET)
     public Result GetSearchmanage(@RequestBody @PathVariable int userid) {
         List<Searchmanage> searchmanageList = billService.getSearchmanage();
