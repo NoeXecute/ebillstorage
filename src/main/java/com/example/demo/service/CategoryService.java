@@ -10,6 +10,7 @@ import com.example.demo.entity.BillType;
 import com.example.demo.entity.Customer;
 import com.example.demo.entity.CustomerType;
 import com.example.demo.entity.User;
+import com.example.demo.entity.Searchmanage;
 
 @Service
 public class CategoryService {
@@ -88,4 +89,11 @@ public class CategoryService {
 		List<CustomerType> customerTypes = categoryMapper.getCustomerTypes();
 		return customerTypes;
 	};
+
+
+
+	public List<Searchmanage> getSearchManage() {
+		List<Searchmanage> searchManageList = categoryMapper.getSearchManage();
+		return searchManageList;
+	}
 }

@@ -133,7 +133,8 @@ public class BillController {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMM");
             String dir = dateFormat.format(date);
             // 保存文件到服务器，你可以根据需要更改存储路径
-            String uploadDir = "D:/ftp/nixiao-test/" + dir;
+//            String uploadDir = "D:/ftp/nixiao-test/" + dir;
+            String uploadDir = "/Users/mucc/Documents/test/" + dir;
             File uploadPath = new File(uploadDir);
 
             if (!uploadPath.exists()) {
@@ -147,7 +148,8 @@ public class BillController {
             File dest = new File(uploadPath + File.separator + newFileName);
             multipartFile.transferTo(dest);
 
-            String uploadedFilePath = "http://192.168.11.9:8091/" + dir + "/" + newFileName;
+//            String uploadedFilePath = "http://192.168.11.9:8091/" + dir + "/" + newFileName;
+            String uploadedFilePath = "http://192.168.11.31:8000/" + dir + "/" + newFileName;
             System.out.println("文件上传成功。路径：" + uploadedFilePath);
             billService.insertFileTemplog(uploadedFilePath);
 

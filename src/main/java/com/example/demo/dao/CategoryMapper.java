@@ -2,12 +2,8 @@ package com.example.demo.dao;
 
 import java.util.List;
 
+import com.example.demo.entity.*;
 import org.apache.ibatis.annotations.Mapper;
-
-import com.example.demo.entity.BillType;
-import com.example.demo.entity.Customer;
-import com.example.demo.entity.CustomerType;
-import com.example.demo.entity.User;
 
 
 @Mapper
@@ -42,4 +38,6 @@ public interface CategoryMapper {
 	public CustomerType getCustomerType();
 
 	public void insertCustomerType(String customerTypeTemp);
+
+	public List<Searchmanage> getSearchManage();
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.example.demo.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,11 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.entity.BillType;
-import com.example.demo.entity.Customer;
-import com.example.demo.entity.CustomerType;
-import com.example.demo.entity.Result;
-import com.example.demo.entity.User;
 import com.example.demo.service.CategoryService;
 
 /**
@@ -89,14 +85,21 @@ public class CategoryController {
 
     
     @RequestMapping(value="/editCustomer",method=RequestMethod.POST)
-    public Result editCustomer(@RequestBody @Valid Customer customer){
+    public Result EditCustomer(@RequestBody @Valid Customer customer){
         categoryService.editCustomer(customer);
         return Result.ok(null);
     }
 
     @RequestMapping(value = "/getCustomerTypes", method = RequestMethod.GET)
-    public Result GetCustomerTrypes() {
+    public Result GetCustomerTypes() {
         List<CustomerType> customerTypes = categoryService.getCustomerTypes();
         return Result.ok(customerTypes);
+    }
+
+    //Searchmanage
+    @RequestMapping(value = "/getSearchManage", method = RequestMethod.GET)
+    public Result GetSearchManage() {
+        List<Searchmanage> searchManageList = categoryService.getSearchManage();
+        return Result.ok(searchManageList);
     }
 }

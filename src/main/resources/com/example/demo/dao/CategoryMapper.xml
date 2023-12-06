@@ -173,4 +173,16 @@
         FROM
             ebillstorage.customertypes
   	</select>
+
+<!--managematch-->
+	<select id="getSearchManage" resultType="com.example.demo.entity.Searchmanage">
+		SELECT
+			searchno,
+			condition,
+			condition_japanese,
+			review_status,
+			search_status
+		FROM
+			ebillstorage.searchmanage
+	</select>
 </mapper>
