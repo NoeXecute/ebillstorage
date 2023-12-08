@@ -60,86 +60,105 @@
             </if>
 		LIMIT #{pagesize} OFFSET #{pageResult};
   	</select>
-	<!-- 検索条件に基づいて帳票を検索する -->
-  	<!-- <select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
-				WITH ranked_data AS (
-		  SELECT
-		    bl.historyno,
-		    bl.billno,
-		    c.customer,
-		    bt.bill_type,
-		    bl.bill_typeno,
-		    bl.customerno,
-		    bl.transactionymd,
-		    bl.transaction_amount,
-		    bl.updateuserid,
-		    ROW_NUMBER() OVER (PARTITION BY bl.billno ORDER BY bl.transactionymd DESC) AS row_num
-		  FROM
-		    ebillstorage.bill_log bl
-		    LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
-		    LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
-		    LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
-		  WHERE r.review_status = 3 OR r.review_status = 4
-		)
+
+	<select id="waitingApproval" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
 		SELECT
-		  historyno,
-		  billno,
-		  customer,
-		  bill_type,
-		  bill_typeno,
-		  customerno,
-		  transactionymd,
-		  transaction_amount,
-		  updateuserid,
-		  COUNT(*) OVER() AS totalBill
-		FROM ranked_data
-		WHERE (row_num = 1 OR row_num IS NULL)
-            <if test="condition.transactionDateFrom != null and condition.transactionDateFrom != '' and condition.transactionDateTo != null and condition.transactionDateTo != ''">
-                AND transactionymd BETWEEN CAST(#{condition.transactionDateFrom} AS timestamp)  AND CAST(#{condition.transactionDateTo} AS timestamp)
-            </if>
-            <if test="condition.transactionAmountFrom != null and condition.transactionAmountFrom != '' and condition.transactionAmountTo != null and condition.transactionAmountTo != ''">
-                AND transaction_amount BETWEEN #{condition.transactionAmountFrom} AND #{condition.transactionAmountTo} 
-            </if>
-            <if test="condition.transactionAmountFrom != null and condition.transactionAmountFrom != '' and (condition.transactionAmountTo == null or condition.transactionAmountTo == '')">
-                AND transaction_amount >= #{condition.transactionAmountFrom}
-            </if>
-            <if test="(condition.transactionAmountFrom == null or condition.transactionAmountFrom == '') and condition.transactionAmountTo != null and condition.transactionAmountTo != ''">
-                AND transaction_amount BETWEEN 0 AND #{condition.transactionAmountTo}
-            </if>
-            <if test="condition.customerno != null and condition.customerno != ''">
-                AND customerno = #{condition.customerno}
-            </if>
-            <if test="condition.billTypeno != null and condition.billTypeno != ''">
-                AND bill_typeno = #{condition.billTypeno}
-            </if>
-            <if test="condition.updateuserid != null and condition.updateuserid != ''">
-                AND updateuserid = #{condition.updateuserid}
-            </if>
-			<if test="prop != null and prop != ''">
-				<if test="prop == 'transactionAmount'">
-					ORDER BY transaction_amount
-				</if>
-				<if test="prop != 'transactionAmount'">
-					ORDER BY ${prop}
-				</if>
-                <if test="order == 'ascending' or order == null or order == ''">
-                    asc
-                </if>
-                <if test="order == 'descending'">
-                    desc
-                </if>
-            </if>
-            <if test="prop == null or prop == ''">
-                ORDER BY billno
-                <if test="order == 'ascending' or order == null or order == ''">
-                    asc
-                </if>
-                <if test="order == 'descending'">
-                    desc
-                </if>
-            </if>
+			bi.inputno,
+			bi.billno,
+			c.customer,
+			bt.bill_type,
+			bi.bill_typeno,
+			bi.customerno,
+			bi.transactionymd,
+			bi.transaction_amount,
+			r.review_status,
+			bi.Send_receive_type
+
+		FROM
+		ebillstorage.bill_input bi
+		LEFT JOIN ebillstorage.review r ON bi.billno = r.billno
+		LEFT JOIN ebillstorage.customer c ON bi.customerno = c.customerno
+		LEFT JOIN ebillstorage.bill_type bt ON bi.bill_typeno = bt.bill_typeno
+		WHERE r.edit_permissions = false
+		<if test="reviewStatus != null and reviewStatus != '' ">
+			AND r.review_status = #{reviewStatus}
+		</if>
+		<if test="transactionDateFrom != null and transactionDateFrom != '' and transactionDateTo != null and transactionDateTo != ''">
+			AND bi.transactionymd BETWEEN #{transactionDateFrom} AND #{transactionDateTo}
+		</if>
+		<if test="transactionAmountFrom != null and transactionAmountFrom != '' or transactionAmountTo != null and transactionAmountTo != ''">
+			AND bi.transaction_amount BETWEEN
+			COALESCE(CAST(#{transactionAmountFrom} AS DECIMAL), 0)
+			AND
+			COALESCE(CAST(#{transactionAmountTo} AS DECIMAL), CAST('999999999999' AS DECIMAL))
+		</if>
+		<if test="customerno != null and customerno != ''">
+			AND bi.customerno = #{customerno}
+		</if>
+		<if test="billTypeno != null and billTypeno != ''">
+			AND bi.bill_typeno = #{billTypeno}
+		</if>
+		<if test="updateuserid != null and updateuserid != ''">
+			AND bi.updateuserid = #{updateuserid}
+		</if>
+		ORDER BY
+		<if test="prop != null and prop != ''">
+			<if test="prop == 'transactionAmount'">
+				bi.transaction_amount
+			</if>
+			<if test="prop != 'transactionAmount'">
+				${prop}
+			</if>
+			<if test="order == 'ascending' or order == null or order == ''">
+				ASC
+			</if>
+			<if test="order == 'descending'">
+				DESC
+			</if>
+		</if>
+		<if test="prop == null or prop == ''">
+			bi.billno
+			<if test="order == 'ascending' or order == null or order == ''">
+				ASC
+			</if>
+			<if test="order == 'descending'">
+				DESC
+			</if>
+		</if>
 		LIMIT #{pagesize} OFFSET #{pageResult};
-	</select> -->
+	</select>
+
+	<select id="waitingApprovalTotalNum" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="int">
+		SELECT
+			COUNT(bi.inputno) as total_bill
+		FROM
+		ebillstorage.bill_input bi
+		LEFT JOIN ebillstorage.review r ON bi.billno = r.billno
+		LEFT JOIN ebillstorage.customer c ON bi.customerno = c.customerno
+		LEFT JOIN ebillstorage.bill_type bt ON bi.bill_typeno = bt.bill_typeno
+		WHERE  r.edit_permissions = false
+		<if test="reviewStatus != null and reviewStatus != '' ">
+			AND r.review_status = #{reviewStatus}
+		</if>
+		<if test="transactionDateFrom != null and transactionDateFrom != '' and transactionDateTo != null and transactionDateTo != ''">
+			AND bi.transactionymd BETWEEN #{transactionDateFrom} AND #{transactionDateTo}
+		</if>
+		<if test="transactionAmountFrom != null and transactionAmountFrom != '' or transactionAmountTo != null and transactionAmountTo != ''">
+			AND bi.transaction_amount BETWEEN
+			COALESCE(CAST(#{transactionAmountFrom} AS DECIMAL), 0)
+			AND
+			COALESCE(CAST(#{transactionAmountTo} AS DECIMAL), CAST('999999999999' AS DECIMAL))
+		</if>
+		<if test="customerno != null and customerno != ''">
+			AND bi.customerno = #{customerno}
+		</if>
+		<if test="billTypeno != null and billTypeno != ''">
+			AND bi.bill_typeno = #{billTypeno}
+		</if>
+		<if test="updateuserid != null and updateuserid != ''">
+			AND bi.updateuserid = #{updateuserid}
+		</if>
+	</select>
 
 	<select id="conditionSearch" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
 		SELECT
@@ -151,13 +170,19 @@
 			bl.customerno,
 			bl.transactionymd,
 			bl.transaction_amount,
-			bl.updateuserid
+			bl.updateuserid,
+			r.review_status,
+			bl.Send_receive_type
+
 		FROM
 			ebillstorage.bill_log bl
 			LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
 			LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
 			LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
-		WHERE r.review_status = 3 OR r.review_status = 4
+		WHERE 1=1
+			<if test="reviewStatus != null and reviewStatus != '' ">
+				AND r.review_status = #{reviewStatus}
+			</if>
 			<if test="transactionDateFrom != null and transactionDateFrom != '' and transactionDateTo != null and transactionDateTo != ''">
 				AND bl.transactionymd BETWEEN #{transactionDateFrom} AND #{transactionDateTo}
 			</if>
@@ -203,6 +228,39 @@
 			LIMIT #{pagesize} OFFSET #{pageResult};
 	</select>
 
+
+	<select id="conditionSearchTotalNum" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="int">
+		SELECT
+		COUNT(bl.billno) as total_bill
+		FROM
+		ebillstorage.bill_log bl
+		LEFT JOIN ebillstorage.review r ON bl.billno = r.billno
+		LEFT JOIN ebillstorage.customer c ON bl.customerno = c.customerno
+		LEFT JOIN ebillstorage.bill_type bt ON bl.bill_typeno = bt.bill_typeno
+		WHERE 1=1
+		<if test="reviewStatus != null and reviewStatus != '' ">
+			AND r.review_status = #{reviewStatus}
+		</if>
+		<if test="transactionDateFrom != null and transactionDateFrom != '' and transactionDateTo != null and transactionDateTo != ''">
+			AND bl.transactionymd BETWEEN #{transactionDateFrom} AND #{transactionDateTo}
+		</if>
+		<if test="transactionAmountFrom != null and transactionAmountFrom != '' or transactionAmountTo != null and transactionAmountTo != ''">
+			AND bl.transaction_amount BETWEEN
+			COALESCE(CAST(#{transactionAmountFrom} AS DECIMAL), 0)
+			AND
+			COALESCE(CAST(#{transactionAmountTo} AS DECIMAL), CAST('999999999999' AS DECIMAL))
+		</if>
+		<if test="customerno != null and customerno != ''">
+			AND bl.customerno = #{customerno}
+		</if>
+		<if test="billTypeno != null and billTypeno != ''">
+			AND bl.bill_typeno = #{billTypeno}
+		</if>
+		<if test="updateuserid != null and updateuserid != ''">
+			AND bl.updateuserid = #{updateuserid}
+		</if>
+	</select>
+
 	<select id="getEditWaitBill" parameterType="com.example.demo.dto.ConditionSearchRequest" resultType="com.example.demo.entity.BillInfo">
 		WITH ranked_data AS (
 		SELECT
@@ -240,6 +298,10 @@
 		LIMIT #{pagesize} OFFSET #{pageResult};
 	</select>
 	<!-- 承認を待つ取引帳票リストを検索する -->
+
+
+
+
   	<select id="getOnSubmit" parameterType="com.example.demo.dto.GetBillsRequest" resultType="com.example.demo.entity.BillInfo">
 		WITH ranked_data AS (  
 		SELECT

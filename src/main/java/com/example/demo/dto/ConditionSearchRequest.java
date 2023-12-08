@@ -5,7 +5,9 @@ import java.util.Date;
 
 import com.example.demo.entity.Condition;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * ユーザーログイン
@@ -14,7 +16,8 @@ import lombok.Data;
 public class ConditionSearchRequest implements Serializable {
 
 	// private Condition condition;
-
+//    @DateTimeFormat(pattern = "yyyy/MM/dd")
+//    @JsonFormat(pattern = "yyyy/MM/dd")
     private Date transactionDateFrom;
 	
 	private Date transactionDateTo;
@@ -26,8 +29,10 @@ public class ConditionSearchRequest implements Serializable {
 	private int customerno;
 	
 	private int billTypeno;
-	
+
 	private int updateuserid;
+
+	private int reviewStatus;
     
     private String prop;
     

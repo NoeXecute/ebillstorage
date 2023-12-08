@@ -22,6 +22,12 @@ public interface BillMapper {
 
 	public List<BillInfo> conditionSearch(ConditionSearchRequest conditionSearchRequest);
 
+	Integer conditionSearchTotalNum(ConditionSearchRequest conditionSearchRequest);
+
+	public List<BillInfo> waitingApproval(ConditionSearchRequest conditionSearchRequest);
+
+	public Integer waitingApprovalTotalNum(ConditionSearchRequest conditionSearchRequest);
+
 	public List<BillInfo> getEditWaitBill(ConditionSearchRequest conditionSearchRequest);
 
 	public List<BillInfo> getOnSubmit(GetBillsRequest getBillsRequest);

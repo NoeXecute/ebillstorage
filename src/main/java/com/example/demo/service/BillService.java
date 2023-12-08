@@ -10,15 +10,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.example.demo.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.dao.BillMapper;
-import com.example.demo.dto.ConditionSearchRequest;
-import com.example.demo.dto.CreateBillsRequest;
-import com.example.demo.dto.GetBillsRequest;
-import com.example.demo.dto.UpdateUsersResponse;
 import com.example.demo.entity.BillDetails;
 import com.example.demo.entity.BillInfo;
 import com.example.demo.entity.Result;
@@ -39,10 +36,22 @@ public class BillService {
 		return bills;
 	}
 
-	public List<BillInfo> conditionSearch(ConditionSearchRequest conditionSearchRequest) {
+	public BillListResponse conditionSearch(ConditionSearchRequest conditionSearchRequest) {
 		// TODO 自動生成されたメソッド・スタブ
-		List<BillInfo> billInfos = billMapper.conditionSearch(conditionSearchRequest);
-		return billInfos;
+//		List<BillInfo> billInfos = billMapper.conditionSearch(conditionSearchRequest);
+		if (conditionSearchRequest.getReviewStatus() == 1){
+			BillListResponse billListResponse=new BillListResponse();
+			billListResponse.setBillList(billMapper.waitingApproval(conditionSearchRequest));
+			billListResponse.setTotalBill(billMapper.waitingApprovalTotalNum(conditionSearchRequest));
+
+			return billListResponse;
+		} else {
+			BillListResponse billListResponse=new BillListResponse();
+			billListResponse.setBillList(billMapper.conditionSearch(conditionSearchRequest));
+			billListResponse.setTotalBill(billMapper.conditionSearchTotalNum(conditionSearchRequest));
+			return billListResponse;
+		}
+//		total返回
 	}
 
 	public List<BillInfo> getEditWaitBill(ConditionSearchRequest conditionSearchRequest) {

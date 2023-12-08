@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import javax.validation.Valid;
 
+import com.example.demo.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,10 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.FtpConfig;
-import com.example.demo.dto.ConditionSearchRequest;
-import com.example.demo.dto.CreateBillsRequest;
-import com.example.demo.dto.GetBillsRequest;
-import com.example.demo.dto.UpdateUsersResponse;
 import com.example.demo.entity.BillDetails;
 import com.example.demo.entity.BillInfo;
 import com.example.demo.entity.Result;
@@ -69,9 +66,10 @@ public class BillController {
     public Result ConditionSearch(@RequestBody @Valid ConditionSearchRequest conditionSearchRequest) {
         conditionSearchRequest
                 .setPageResult((conditionSearchRequest.getCurrentPage() - 1) * conditionSearchRequest.getPagesize());
-        List<BillInfo> billInfos = billService.conditionSearch(conditionSearchRequest);
-
-        return Result.ok(billInfos);
+//        List<BillInfo> billInfos = billService.conditionSearch(conditionSearchRequest);
+    //
+        BillListResponse billListResponse = billService.conditionSearch(conditionSearchRequest);
+        return Result.ok(billListResponse);
     }
 
     @RequestMapping(value = "/getEditWaitBill", method = RequestMethod.POST)
