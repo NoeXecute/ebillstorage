@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.persistence.Column;
+
 /**
  * ユーザーログイン
  */
@@ -16,8 +18,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 public class ConditionSearchRequest implements Serializable {
 
 	// private Condition condition;
-//    @DateTimeFormat(pattern = "yyyy/MM/dd")
-//    @JsonFormat(pattern = "yyyy/MM/dd")
+
     private Date transactionDateFrom;
 	
 	private Date transactionDateTo;
@@ -33,6 +34,9 @@ public class ConditionSearchRequest implements Serializable {
 	private int updateuserid;
 
 	private int reviewStatus;
+
+	@Column(name = "send_receive_type")
+	private int sendReceiveType;
     
     private String prop;
     

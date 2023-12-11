@@ -72,7 +72,8 @@
 			bi.transactionymd,
 			bi.transaction_amount,
 			r.review_status,
-			bi.Send_receive_type
+			bi.send_receive_type
+
 
 		FROM
 		ebillstorage.bill_input bi
@@ -169,11 +170,10 @@
 			bl.bill_typeno,
 			bl.customerno,
 			bl.transactionymd,
+			bl.send_receive_type,
 			bl.transaction_amount,
 			bl.updateuserid,
-			r.review_status,
-			bl.Send_receive_type
-
+			r.review_status
 		FROM
 			ebillstorage.bill_log bl
 			LEFT JOIN ebillstorage.review r ON bl.billno = r.billno

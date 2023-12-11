@@ -34,6 +34,7 @@ public class BillInfo {
 
 	private int reviewStatus;
 
+	@Column(name = "send_receive_type")
 	private int sendReceiveType;
 
 	private String remark;
