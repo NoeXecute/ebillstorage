@@ -72,4 +72,6 @@ public interface BillMapper {
 
 	public void insertFileTemplog(String uploadedFilePath);
 
+	public int getUserRolesno(int updateUserId);
+
 }

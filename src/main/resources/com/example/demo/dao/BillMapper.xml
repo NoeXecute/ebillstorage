@@ -583,7 +583,33 @@
 			#{remark}
 			)
   	</insert>
+	<!--  insertbill_log 	-->
+	<insert id="insertBillLog" parameterType="com.example.demo.dto.CreateBillsRequest">
+		INSERT INTO ebillstorage.bill_log (
+			billno,
+			transactionymd,
+			transaction_amount,
+			customerno,
+			bill_typeno,
+			updateymd,
+			updateuserid,
+			remark,
+			send_receive_type
 
+		)
+		VALUES (
+			   #{billno},
+			   #{transactionymd},
+			   #{transactionAmount},
+			   #{customerno},
+			   #{billTypeno},
+			   NOW(),
+			   #{updateuserid},
+			   #{remark},
+			   #{sendReceiveType}
+			   )
+	</insert>
+	<!--	-->
 	  <insert id="insertReview" parameterType="com.example.demo.dto.CreateBillsRequest">
 		INSERT INTO ebillstorage.review (billno, review_status, edit_permissions)
 	    VALUES (#{billno},1,false)
@@ -675,6 +701,12 @@
 			 now()
 		)
   	</insert>
-	
-	  
+
+	<select id="getUserRolesno" parameterType="int" resultType="int">
+		SELECT rolesno
+		FROM ebillstorage.user
+		WHERE userid = #{updateUserId}
+	</select>
+
+
 </mapper>

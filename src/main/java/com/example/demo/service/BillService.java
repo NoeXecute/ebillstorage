@@ -120,11 +120,19 @@ public class BillService {
 		String timeAsString = dateFormat.format(currentTime);
 		String billnoString = timeAsString + "BY" + createBillsRequest.getUpdateuserid() + "-AA";
 		createBillsRequest.setBillno(billnoString);
-
+//		根据userid找rolesno，判断是否能直接进log表
+		int rolesno = getRolesNo(createBillsRequest.getUpdateuserid());
 
 		try {
-			// 插入数据到 bill_input 表
-			billMapper.insertBillInput(createBillsRequest);
+			//
+			if (rolesno == 6){
+				//进bill_log
+				billMapper.insertBillInput(createBillsRequest);
+			}else{
+				// 插入数据到 bill_input 表
+				billMapper.insertBillInput(createBillsRequest);
+			}
+
 
 			// 插入数据到 review 表
 			billMapper.insertReview(createBillsRequest);
@@ -256,6 +264,10 @@ public class BillService {
 
 	public void insertFileTemplog(String uploadedFilePath) {
 		billMapper.insertFileTemplog(uploadedFilePath);
+	}
+
+	public int getRolesNo(int updateUserid) {
+		return billMapper.getUserRolesno(updateUserid);
 	}
 
 }
