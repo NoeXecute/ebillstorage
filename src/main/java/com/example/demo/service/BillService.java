@@ -136,6 +136,7 @@ public class BillService {
 			// 如果没有抛出异常，事务会在方法结束时自动提交
 		} catch (Exception e) {
 			// 如果发生异常，事务会回滚
+			e.printStackTrace();//看看报错
 			throw new RuntimeException("创建账单失败", e);
 		}
 

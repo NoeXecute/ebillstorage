@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 
@@ -35,6 +36,8 @@ public class BillDetails {
 	private String imageUrl;
 
 	private int reviewStatus;
+
+	private Integer sendReceiveType;
 
 	private boolean editPermissions;
 

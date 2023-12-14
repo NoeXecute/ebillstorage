@@ -6,6 +6,8 @@ import java.util.List;
 
 import lombok.Data;
 
+import javax.persistence.Column;
+
 /**
  * ユーザーログイン
  */
@@ -26,7 +28,7 @@ public class CreateBillsRequest implements Serializable {
 
     private Date  transactionymd;
 
-    private boolean receiptIssuance;
+    private int sendReceiveType;
 
     private String imageUrl;
 
