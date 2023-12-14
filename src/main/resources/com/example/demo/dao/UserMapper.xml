@@ -31,8 +31,8 @@
 
 	<!-- 新規ユーザーを増加する -->
 	<insert id="insertUser" parameterType="com.example.demo.entity.User">
-	    INSERT INTO ebillstorage.user (userid, user_status, username, password, rolesno, createymd, createuserid)
-	    VALUES (#{userid}, TRUE, #{username},#{password},#{rolesno},now(),#{createuserid})
+	    INSERT INTO ebillstorage.user (userid, user_status, username, password, rolesno, createymd, createuserid,search_permissions)
+	    VALUES (#{userid}, TRUE, #{username},#{password},#{rolesno},now(),#{createuserid},#{searchPermissions})
   	</insert>
 	
 	<!-- 指定されるユーザーの情報を編集する -->

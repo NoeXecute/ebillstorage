@@ -57,4 +57,6 @@ public class User implements Serializable {
     @Column(name = "remark")
     private String remark;
 
+    @Column(name = "search_permissions")
+    private String searchPermissions;
 }
