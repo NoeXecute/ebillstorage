@@ -14,6 +14,7 @@ import java.util.HashMap;
 import javax.validation.Valid;
 
 import com.example.demo.dto.*;
+import com.example.demo.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,12 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.FtpConfig;
-import com.example.demo.entity.BillDetails;
-import com.example.demo.entity.BillInfo;
-import com.example.demo.entity.Result;
-import com.example.demo.entity.Searchmanage;
-import com.example.demo.entity.Searchmatchmanage;
-import com.example.demo.entity.User;
 import com.example.demo.service.BillService;
 
 /**
@@ -189,7 +184,8 @@ public class BillController {
 
     @RequestMapping(value = "/downloadBill", method = RequestMethod.POST)
     public Result DownloadBill(@RequestBody @Valid List<String> billnos) {
-        List<BillInfo> billInfos = billService.downloadBill(billnos);
+        List<BillFile> billInfos = billService.downloadBill(billnos);
+//        Map<String, String> billInfos = billService.downloadBill(billnos);
         return Result.ok(billInfos);
     }
 
@@ -216,6 +212,7 @@ public class BillController {
         billService.deleteTempFile(imageUrlMap);
         return Result.ok(null);
     }
+
 
 
 

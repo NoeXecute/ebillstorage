@@ -11,18 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.example.demo.dto.*;
+import com.example.demo.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.dao.BillMapper;
-import com.example.demo.entity.BillDetails;
-import com.example.demo.entity.BillInfo;
-import com.example.demo.entity.Result;
-import com.example.demo.entity.Review;
-import com.example.demo.entity.Searchmanage;
-import com.example.demo.entity.Searchmatchmanage;
-import com.example.demo.entity.User;
 
 @Service
 public class BillService {
@@ -84,10 +78,11 @@ public class BillService {
 		return billInfos;
 	}
 
-	public List<BillInfo> downloadBill(List<String> billnos) {
+	public List<BillFile> downloadBill(List<String> billnos) {
 		// TODO 自動生成されたメソッド・スタブ
-		List<BillInfo> billInfos = billMapper.downloadBill(billnos);
-		return billInfos;
+		List<BillFile> billFiles = billMapper.downloadBill(billnos);
+
+		return billFiles;
 	}
 
 	public List<BillDetails> getBillDetails(String billno) {

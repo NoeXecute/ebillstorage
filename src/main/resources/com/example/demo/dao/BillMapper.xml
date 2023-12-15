@@ -709,4 +709,14 @@
 	</select>
 
 
+	<select id="downloadBill" resultType="com.example.demo.entity.BillFile">
+		SELECT bill_filelink
+		FROM ebillstorage.bill_file
+		WHERE billno IN
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+
 </mapper>

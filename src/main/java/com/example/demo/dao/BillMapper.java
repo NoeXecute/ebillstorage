@@ -2,18 +2,13 @@ package com.example.demo.dao;
 
 import java.util.List;
 
+import com.example.demo.entity.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.example.demo.dto.ConditionSearchRequest;
 import com.example.demo.dto.CreateBillsRequest;
 import com.example.demo.dto.GetBillsRequest;
 import com.example.demo.dto.UpdateUsersResponse;
-import com.example.demo.entity.BillDetails;
-import com.example.demo.entity.BillInfo;
-import com.example.demo.entity.Review;
-import com.example.demo.entity.Searchmanage;
-import com.example.demo.entity.Searchmatchmanage;
-import com.example.demo.entity.User;
 
 @Mapper
 public interface BillMapper {
@@ -32,7 +27,7 @@ public interface BillMapper {
 
 	public List<BillInfo> getOnSubmit(GetBillsRequest getBillsRequest);
 
-	public List<BillInfo> downloadBill(List<String> billnos);
+	public List<BillFile> downloadBill(List<String> billnos);
 
 	public Review getBillStatus(String billnos);
 
